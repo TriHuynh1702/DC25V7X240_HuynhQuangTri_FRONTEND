@@ -57,6 +57,8 @@
           </span>
         </router-link>
       </div>
+
+      <p v-else>Chưa có liên hệ nào được chọn.</p>
     </div>
   </div>
 </template>
@@ -84,7 +86,7 @@ export default {
 
   watch: {
     searchText() {
-      this.activeIndex = -1;
+      this.activeIndex = this.filteredContacts.length > 0 ? 0 : -1;
     },
   },
 
@@ -100,13 +102,15 @@ export default {
       if (!this.searchText) return this.contacts;
 
       return this.contacts.filter((_contact, index) =>
-        this.contactStrings[index].includes(this.searchText),
+        this.contactStrings[index].toLowerCase().includes(
+          this.searchText.toLowerCase()
+        )
       );
     },
 
     activeContact() {
       if (this.activeIndex < 0) return null;
-      return this.filteredContacts[this.activeIndex];
+      return this.filteredContacts[this.activeIndex] || null;
     },
 
     filteredContactsCount() {
@@ -115,27 +119,27 @@ export default {
   },
 
   methods: {
-async retrieveContacts() {
-  try {
-    this.contacts = await ContactService.getAll();
+    async retrieveContacts() {
+      try {
+        this.contacts = await ContactService.getAll();
 
-    console.log("Dữ liệu Frontend nhận được:", this.contacts);
-    console.log("Liên hệ đang chọn:", this.activeContact);
-  } catch (error) {
-    console.log("Lỗi lấy danh sách liên hệ:", error);
-  }
-},
+        // Tự động chọn liên hệ đầu tiên
+        this.activeIndex = this.filteredContacts.length > 0 ? 0 : -1;
+      } catch (error) {
+        console.log("Lỗi lấy danh sách liên hệ:", error);
+      }
+    },
 
-    refreshList() {
-      this.retrieveContacts();
-      this.activeIndex = -1;
+    async refreshList() {
+      await this.retrieveContacts();
     },
 
     async removeAllContacts() {
       if (confirm("Bạn muốn xóa tất cả Liên hệ?")) {
         try {
           await ContactService.deleteAll();
-          this.refreshList();
+          this.contacts = [];
+          this.activeIndex = -1;
         } catch (error) {
           console.log(error);
         }
@@ -148,7 +152,7 @@ async retrieveContacts() {
   },
 
   mounted() {
-    this.refreshList();
+    this.retrieveContacts();
   },
 };
 </script>
