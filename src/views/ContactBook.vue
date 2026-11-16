@@ -1,9 +1,11 @@
+
 <template>
   <div class="page row">
     <div class="col-md-10">
       <InputSearch v-model="searchText" />
     </div>
 
+    <!-- Danh sách liên hệ -->
     <div class="mt-3 col-md-6">
       <h4>
         Danh bạ
@@ -18,6 +20,7 @@
 
       <p v-else>Không có liên hệ nào.</p>
 
+      <!-- Các nút chức năng -->
       <div class="mt-3 row justify-content-around align-items-center">
         <button class="btn btn-sm btn-primary" @click="refreshList()">
           <i class="fas fa-redo"></i> Làm mới
@@ -33,14 +36,26 @@
       </div>
     </div>
 
+    <!-- Chi tiết liên hệ -->
     <div class="mt-3 col-md-6">
-      <div v-if="activeContact">
-        <h4>
-          Chi tiết Liên hệ
-          <i class="fas fa-address-card"></i>
-        </h4>
+      <h4>
+        Chi tiết Liên hệ
+        <i class="fas fa-address-card"></i>
+      </h4>
 
+      <div v-if="activeContact">
         <ContactCard :contact="activeContact" />
+
+        <router-link
+          :to="{
+            name: 'contact.edit',
+            params: { id: activeContact._id },
+          }"
+        >
+          <span class="mt-2 badge badge-warning">
+            <i class="fas fa-edit"></i> Hiệu chỉnh
+          </span>
+        </router-link>
       </div>
     </div>
   </div>
@@ -100,13 +115,16 @@ export default {
   },
 
   methods: {
-    async retrieveContacts() {
-      try {
-        this.contacts = await ContactService.getAll();
-      } catch (error) {
-        console.log(error);
-      }
-    },
+async retrieveContacts() {
+  try {
+    this.contacts = await ContactService.getAll();
+
+    console.log("Dữ liệu Frontend nhận được:", this.contacts);
+    console.log("Liên hệ đang chọn:", this.activeContact);
+  } catch (error) {
+    console.log("Lỗi lấy danh sách liên hệ:", error);
+  }
+},
 
     refreshList() {
       this.retrieveContacts();
